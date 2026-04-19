@@ -1,0 +1,56 @@
+[project]
+name = "nzglid"
+authors = [
+  { name="Baptiste Hamon", email="baptiste.hamon@pg.canterbury.ac.nz" },
+]
+maintainers = [
+  { name="Baptiste Hamon", email="baptiste.hamon@pg.canterbury.ac.nz" },
+]
+readme = "README.md"
+requires-python = "3.13"
+keywords = ["NZGLID", "Land Information", "New Zeland", "Dataset"]
+license = {file = "LICENSE"}
+dynamic = ["description", "version"]
+dependencies = [
+    "geocube >=0.7.0",
+    "geopandas >=0.14.0",
+    "xarray >=2024.11.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  # dev tools
+  "bump-my-version >=1.3.0",
+]
+
+[project.urls]
+# Homepage = ""
+Source = "https://github.com/baptistehamon/nzglid"
+Zenodo = "https://doi.org/10.5281/zenodo.16249350"
+
+[tool.bumpversion]
+current_version = "1.0"
+commit = true
+commit_args = "--no-verify --signoff"
+tag = false
+allow_dirty = false
+parse = "(?P<major>\\d+)\\.(?P<patch>\\d+)(\\-(?P<release>[a-z]+)((?P<build>\\d+)))?"
+serialize = [
+  "{major}.{patch}-{release}{build}",
+  "{major}.{patch}"
+]
+
+[[tool.bumpversion.files]]
+filename = "src/nzglid/__init__.py"
+search = "__version__ = \"{current_version}\""
+replace = "__version__ = \"{new_version}\""
+
+[tool.bumpversion.parts.build]
+independent = false
+
+[tool.bumpversion.parts.release]
+optional_value = "release"
+values = [
+  "dev",
+  "release"
+]
