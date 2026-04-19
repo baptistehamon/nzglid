@@ -1,5 +1,10 @@
 # Release Notes
 
+## v1.1 (2025-08-12)
+
+- This version modifies the structures of the archives removing subfolders making downloading data through zenodo API easier.
+- The data itself and the code used to create the dataset remain unchanged.
+
 ## v1.0 (2025-07-23)
 
 - Initial release of the New Zealand Gridded Land Information Dataset (NZGLID).
