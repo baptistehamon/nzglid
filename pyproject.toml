@@ -1,0 +1,23 @@
+[project]
+name = "nzglid"
+authors = [
+  { name="Baptiste Hamon", email="baptiste.hamon@pg.canterbury.ac.nz" },
+]
+maintainers = [
+  { name="Baptiste Hamon", email="baptiste.hamon@pg.canterbury.ac.nz" },
+]
+readme = "README.md"
+requires-python = "3.13"
+keywords = ["NZGLID", "Land Information", "New Zeland", "Dataset"]
+license = {file = "LICENSE"}
+dynamic = ["description", "version"]
+dependencies = [
+    "geocube >=0.7.0",
+    "geopandas >=0.14.0",
+    "xarray >=2024.11.0",
+]
+
+[project.urls]
+# Homepage = ""
+Source = "https://github.com/baptistehamon/nzglid"
+Zenodo = "https://doi.org/10.5281/zenodo.16249350"
