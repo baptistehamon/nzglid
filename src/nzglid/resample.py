@@ -3,6 +3,8 @@
 import numpy as np
 import rasterio as rio
 from rasterio.transform import Affine
+from rasterio.warp import reproject, Resampling, calculate_default_transform
+import xarray as xr
 
 def make_exraster(path: str, res: tuple[float | int, float | int]):
     """
@@ -34,3 +36,61 @@ def make_exraster(path: str, res: tuple[float | int, float | int]):
         transform=transform,
     ) as dst:
         dst.write(data, 1)
+
+
+def reproj_match(infile, matchfile, outfile, method='bilinear'):
+    """
+    Reproject a file to match the shape and projection of existing raster. 
+
+    From: https://pygis.io/docs/e_raster_resample.html#example-of-co-registering-rasters-with-rasterio
+    
+    Parameters
+    ----------
+    infile: str
+        Path to source raster to reproject.
+    matchfile: str
+        Path to raster with desired shape and projection.
+    outfile: str
+        Path to output raster file.
+    method: str
+        Resampling method to use. See 'rasterio.warp.Resampling' for options. Default is 'bilinear'.
+    """
+    resampling = getattr(Resampling, method)
+
+    # open input
+    with rio.open(infile) as src:
+        # src_transform = src.transform
+        
+        # open input to match
+        with rio.open(matchfile) as match:
+            dst_crs = match.crs
+            
+            # calculate the output transform matrix
+            dst_transform, dst_width, dst_height = calculate_default_transform(
+                src.crs,     # input CRS
+                dst_crs,     # output CRS
+                match.width,   # input width
+                match.height,  # input height 
+                *match.bounds,  # unpacks input outer boundaries (left, bottom, right, top)
+            )
+
+        # set properties for output
+        dst_kwargs = src.meta.copy()
+        dst_kwargs.update({"crs": dst_crs,
+                           "transform": dst_transform,
+                           "width": dst_width,
+                           "height": dst_height,
+                           "nodata": src.nodata})
+        print("Coregistered to shape:", dst_height,dst_width,'\n Affine',dst_transform)
+        # open output
+        with rio.open(outfile, "w", **dst_kwargs) as dst:
+            # iterate through bands and write using reproject function
+            for i in range(1, src.count + 1):
+                reproject(
+                    source=rio.band(src, i),
+                    destination=rio.band(dst, i),
+                    src_transform=src.transform,
+                    src_crs=src.crs,
+                    dst_transform=dst_transform,
+                    dst_crs=dst_crs,
+                    resampling=resampling)
