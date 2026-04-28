@@ -19,3 +19,8 @@ METADATA = {
     'reference': 'https://doi.org/10.5281/zenodo.16249350',
     'Convention': 'CF-1.7',
 }
+
+RESOLUTION = {
+    "5km": (0.05, 0.05),
+    "1km": (0.01, 0.01),
+}

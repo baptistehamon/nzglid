@@ -8,7 +8,7 @@ from rasterio.transform import Affine
 from rasterio.warp import reproject, Resampling, calculate_default_transform
 import xarray as xr
 
-from nzglid import DATAPATH, NZGLID_PATH, METADATA, release
+from nzglid import DATAPATH, NZGLID_PATH, METADATA, release, RESOLUTION
 
 def make_exraster(path: str, res: tuple[float | int, float | int]):
     """
@@ -105,12 +105,7 @@ def open_raster(path):
     da = da.rename({"x": "lon", "y": "lat"}).isel(lat=slice(None, None, -1), band=0)
     return da.drop_vars(["band", "spatial_ref"])
 
-resolutions = {
-    "5km": (0.05, 0.05),
-    "1km": (0.01, 0.01),
-}
-
-for res, grid in resolutions.items():
+for res, grid in RESOLUTION.items():
 
     if not Path(f"WGS84_{res}.tif").exists():
         make_exraster(f"WGS84_{res}.tif", grid)
