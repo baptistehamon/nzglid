@@ -15,6 +15,6 @@ METADATA = {
     'title': f'New Zealand Gridded Land Information Dataset (NZGLID) v{release}',
     'institution': 'Department of Civil and Environmental Engineering, University of Canterbury, Christchurch 8140, NZ',
     'contact': 'Baptiste Hamon: baptiste.hamon@pg.canterbury.ac.nz',
-    'reference': 'https://doi.org/10.5281/zenodo.16249351',
+    'reference': 'https://doi.org/10.5281/zenodo.16249350',
     'Convention': 'CF-1.7',
 }
