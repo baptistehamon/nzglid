@@ -10,7 +10,8 @@ release = __version__.split("-", maxsplit=1)[0]
 __all__ = ["release"]
 
 DATAPATH = Path(r"R:\DATA\GIS-NZ")
-NZGLID_PATH = Path(r"R:\DATA\NZGLID")
+NZGLID_PATH = Path(fr"R:\DATA\NZGLID\v{release}")
+NZGLID_PATH.mkdir(exist_ok=True)
 METADATA = {
     'title': f'New Zealand Gridded Land Information Dataset (NZGLID) v{release}',
     'institution': 'Department of Civil and Environmental Engineering, University of Canterbury, Christchurch 8140, NZ',
