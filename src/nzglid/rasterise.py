@@ -182,7 +182,7 @@ for res, grid in RESOLUTION.items():
         'flag_values': ', '.join([f'{k}' for k in mapping.keys()]),
         'flag_meanings': ' '.join([f'FloodClass_{v}' for v in mapping.values()])
     }
-    postprocess_save(data, "flood_return_interval_class", "FLOOD_CLAS", attrs, res_path, res)
+    postprocess_save(data, "flood_return_interval", "FLOOD_CLAS", attrs, res_path, res)
 
     # land cover
     fp = DATAPATH / 'lris-lcdb-v60-land-cover-database-version-60-mainland-new-zealand'
