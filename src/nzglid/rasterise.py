@@ -1,10 +1,9 @@
 """Rasterise vector data to a 5km and 1km grid."""
 
-from osgeo import gdal # before geocube to avoid ImportError
-from geocube.api.core import make_geocube
 import geopandas as gpd
 
-from nzglid import DATAPATH, NZGLID_PATH, METADATA, release, RESOLUTION
+from nzglid import DATAPATH, NZGLID_PATH, RESOLUTION
+from nzglid.helpers import rasterise, postprocess_save
 
 CATEGORIES_CODE = {
     'e': 'estuary',
@@ -97,30 +96,6 @@ STR_CODE = {
     'C': 'cryic',
 }
 
-def rasterise(layer, field, grid, categorical_enums=None):
-    ds  = make_geocube(
-        layer,
-        measurements=[field],
-        resolution= grid,
-        output_crs= "EPSG:4326",
-        categorical_enums= categorical_enums
-    )
-    if categorical_enums is not None:
-        ds[field] = ds[field].where(ds[field] != -1)  # set nodata to NaN
-
-    ds["x"] = ds["x"].round(3)
-    ds["y"] = ds["y"].round(3)
-    return ds.rename({"x": "lon", "y": "lat"}).drop_vars("spatial_ref")
-
-def postprocess_save(da, name:str, field, attrs, outpath):
-    da = da[field].rename(name)
-    da.attrs = {
-        **METADATA,
-        **attrs,
-        'comment': f'from field: {field}'
-    }
-    da.to_netcdf(outpath / f"NZGLID_{name.replace("_", "-")}_{res}_v{release}.nc")
-
 for res, grid in RESOLUTION.items():
     
     res_path = NZGLID_PATH / f"nzglid_{res}"
@@ -137,7 +112,7 @@ for res, grid in RESOLUTION.items():
         'description': 'CEC is estimated as weighted averages for the soil profile from 0-0.6 m depth '
         'and expressed in units of centimoles of charge per kg.'
     }
-    postprocess_save(data, "cation_exchange_capacity", "CEC_MOD", attrs, res_path)
+    postprocess_save(data, "cation_exchange_capacity", "CEC_MOD", attrs, res_path, res)
 
     # drainage class
     fp = DATAPATH / 'lris-fsl-fundamental-soil-layers/fsl-soil-drainage-class'
@@ -154,7 +129,7 @@ for res, grid in RESOLUTION.items():
         'flag_values': ', '.join([f'{k}' for k in mapping.keys()]),
         'flag_meanings': ' '.join([f'DrainClass_{v}' for v in mapping.values()])
     }
-    postprocess_save(data, "drainage_class", "DRAIN_CLAS", attrs, res_path)
+    postprocess_save(data, "drainage", "DRAIN_CLAS", attrs, res_path, res)
 
     # depth to slowly permeable horizon
     fp = DATAPATH / 'lris-fsl-fundamental-soil-layers/fsl-depth-to-slowly-permeable-horizon'
@@ -168,7 +143,7 @@ for res, grid in RESOLUTION.items():
         '(in metres) to a horizon in which the permeability is less than 4mm/hr as measured by '
         'techniques outlined in Griffiths (1985).',
     }
-    postprocess_save(data, "depth_slowly_permeable_horizon", "DSLO_MOD", attrs, res_path)
+    postprocess_save(data, "depth_slowly_permeable_horizon", "DSLO_MOD", attrs, res_path, res)
 
     # erosion
     fp = DATAPATH / 'lris-nzlri-nz-land-resource-inventory/nzlri-erosion-type-and-severity'
@@ -187,7 +162,7 @@ for res, grid in RESOLUTION.items():
         'flag_values': ', '.join([f'{k}' for k in mapping.keys()]),
         'flag_meanings': ' '.join([f'ErosionSeverity_{v}' for v in mapping.values()])
     }
-    postprocess_save(data, "erosion_severity", "ERO1S", attrs, res_path)
+    postprocess_save(data, "erosion_severity", "ERO1S", attrs, res_path, res)
 
     # flood return interval
     fp = DATAPATH / 'lris-fsl-fundamental-soil-layers/fsl-flood-return-interval'
@@ -207,7 +182,7 @@ for res, grid in RESOLUTION.items():
         'flag_values': ', '.join([f'{k}' for k in mapping.keys()]),
         'flag_meanings': ' '.join([f'FloodClass_{v}' for v in mapping.values()])
     }
-    postprocess_save(data, "flood_return_interval_class", "FLOOD_CLAS", attrs, res_path)
+    postprocess_save(data, "flood_return_interval_class", "FLOOD_CLAS", attrs, res_path, res)
 
     # land cover
     fp = DATAPATH / 'lris-lcdb-v60-land-cover-database-version-60-mainland-new-zealand'
@@ -225,7 +200,7 @@ for res, grid in RESOLUTION.items():
         'description': 'The New Zealand Land Cover Database (LCDB) is a multi-temporal, '
         'thematic classification of New Zealand\'s land cover.'
     }
-    postprocess_save(data, "land_cover", "Class_2023", attrs, res_path)
+    postprocess_save(data, "land_cover", "Class_2023", attrs, res_path, res)
 
     # land use capability
     fp = DATAPATH / 'lris-nzlri-nz-land-resource-inventory/nzlri-land-use-capability-2021'
@@ -245,9 +220,9 @@ for res, grid in RESOLUTION.items():
         'flag_values': ', '.join([f'{k}' for k in mapping.keys()]),
         'flag_meanings': ' '.join([v for v in mapping.values()])
     }
-    postprocess_save(data, "land_use_capability_class", "lcorrclass", attrs, res_path)
+    postprocess_save(data, "land_use_capability", "lcorrclass", attrs, res_path, res)
 
-    # land use map
+    # LUCAS land use
     fp = DATAPATH / 'mfe-lucas-nz-land-use-map-2020-v005/lucas-nz-land-use-map-2020-v005.shp'
     layer = gpd.read_file(fp)
     categories = layer['LUCID_2020'].unique().tolist()
@@ -263,7 +238,7 @@ for res, grid in RESOLUTION.items():
         'These date boundaries are dictated by the Paris Agreement and former Kyoto Protocol. '
         'The data can therefore be used to create a map at any of the nominal mapping dates depending on what field is symbolised.'
     }
-    postprocess_save(data, "lucas_land_use_map", "LUCID_2020", attrs, res_path)
+    postprocess_save(data, "lucas_land_use", "LUCID_2020", attrs, res_path, res)
 
     # particle size classification
     fp = DATAPATH / 'lris-fsl-fundamental-soil-layers/fsl-particle-size-classification'
@@ -283,7 +258,7 @@ for res, grid in RESOLUTION.items():
         'flag_values': ', '.join([f'{k}' for k in mapping.keys()]),
         'flag_meanings': ' '.join([v for v in mapping.values()])
     }
-    postprocess_save(data, "particle_size_class", "PS", attrs, res_path)
+    postprocess_save(data, "particle_size", "PS", attrs, res_path, res)
 
     # permeability profile
     fp = DATAPATH / 'lris-fsl-fundamental-soil-layers/fsl-permeability-profile'
@@ -301,7 +276,7 @@ for res, grid in RESOLUTION.items():
         'flag_values': ', '.join([f'{k}' for k in mapping.keys()]),
         'flag_meanings': ' '.join([f'PermClass_{v}' for v in mapping.values()])
     }
-    postprocess_save(data, "permeability_profile", "PERMEABILI", attrs, res_path)
+    postprocess_save(data, "permeability_profile", "PERMEABILI", attrs, res_path, res)
 
     # ph
     fp = DATAPATH / 'lris-fsl-fundamental-soil-layers/fsl-ph'
@@ -313,7 +288,7 @@ for res, grid in RESOLUTION.items():
         'source': 'https://lris.scinfo.org.nz/layer/48102-fsl-ph/',
         'description': 'Minimum pH is the minimum pH of the soil profile from 0-0.6 m depth.',
     }
-    postprocess_save(data, "ph", "PH_MOD", attrs, res_path)
+    postprocess_save(data, "ph", "PH_MOD", attrs, res_path, res)
 
     # phosphate retention
     fp = DATAPATH / 'lris-fsl-fundamental-soil-layers/fsl-phosphate-retention'
@@ -326,7 +301,7 @@ for res, grid in RESOLUTION.items():
         'description': 'P retention (phosphate retention) is estimated as weighted averages '
         'for the upper part of the soil profile from 0-0.2 m depth, and expressed as a percentage.',
     }
-    postprocess_save(data, "phosphate_retention", "PRET_MOD", attrs, res_path)
+    postprocess_save(data, "phosphate_retention", "PRET_MOD", attrs, res_path, res)
 
     # potential rooting depth
     fp = DATAPATH / 'lris-fsl-fundamental-soil-layers/fsl-potential-rooting-depth'
@@ -339,7 +314,7 @@ for res, grid in RESOLUTION.items():
         'description': 'Potential rooting depth describes the depth (in metres) to a layer '
         'that may impede root extension.',
     }
-    postprocess_save(data, "potential_rooting_depth", "PRD_MOD", attrs, res_path)
+    postprocess_save(data, "potential_rooting_depth", "PRD_MOD", attrs, res_path, res)
 
     # profile available water
     fp = DATAPATH / 'lris-fsl-fundamental-soil-layers/fsl-profile-available-water'
@@ -353,7 +328,7 @@ for res, grid in RESOLUTION.items():
         'the potential rooting depth (whichever is the lesser). Values are weighted averages over the '
         'specified profile section (0-0.9 m) and are expressed in units of mm of water.',
     }
-    postprocess_save(data, "profile_total_available_water", "PAW_MOD", attrs, res_path)
+    postprocess_save(data, "profile_total_available_water", "PAW_MOD", attrs, res_path, res)
 
     # profile readily available water
     fp = DATAPATH / 'lris-fsl-fundamental-soil-layers/fsl-profile-readily-available-water'
@@ -367,7 +342,7 @@ for res, grid in RESOLUTION.items():
         'the potential rooting depth (whichever is the lesser). Values are weighted averages over the '
         'specified profile section (0-0.9 m) and are expressed in units of mm of water.',
     }
-    postprocess_save(data, "profile_readily_available_water", "PRAW_MOD", attrs, res_path)
+    postprocess_save(data, "profile_readily_available_water", "PRAW_MOD", attrs, res_path, res)
 
     # rock outcrops and surface boulders
     fp = DATAPATH / 'lris-fsl-fundamental-soil-layers/fsl-rock-outcrops-and-surface-boulders'
@@ -380,7 +355,7 @@ for res, grid in RESOLUTION.items():
         'description': 'Expression of the percentage of the area of the map units covered by rock '
         'outcrops or surface boulders',
     }
-    postprocess_save(data, "rock_outcrops_surface_boulders", "ROCK_MOD", attrs, res_path)
+    postprocess_save(data, "rock_outcrops_surface_boulders", "ROCK_MOD", attrs, res_path, res)
 
     # salinity
     fp = DATAPATH / 'lris-fsl-fundamental-soil-layers/fsl-salinity'
@@ -392,7 +367,7 @@ for res, grid in RESOLUTION.items():
         'source': 'https://lris.scinfo.org.nz/layer/48103-fsl-salinity/',
         'description': 'Salinity is measured as percent soluble salts (g/100g soil).',
     }
-    postprocess_save(data, "salinity", "SAL_MOD", attrs, res_path)
+    postprocess_save(data, "salinity", "SAL_MOD", attrs, res_path, res)
 
     # soil carbon
     fp = DATAPATH / 'lris-fsl-fundamental-soil-layers/fsl-soil-carbon'
@@ -405,7 +380,7 @@ for res, grid in RESOLUTION.items():
         'description': 'Total carbon (organic matter content) is estimated as weighted averages '
         'for the upper part of the soil profile from 0-0.2 m depth.',
     }
-    postprocess_save(data, "total_carbon", "CARBON_MOD", attrs, res_path)
+    postprocess_save(data, "total_carbon", "CARBON_MOD", attrs, res_path, res)
 
     # soil temperature regime
     fp = DATAPATH / 'lris-fsl-fundamental-soil-layers/fsl-soil-temperature-regime'
@@ -423,7 +398,7 @@ for res, grid in RESOLUTION.items():
         'flag_values': ', '.join([f'{k}' for k in mapping.keys()]),
         'flag_meanings': ' '.join([v for v in mapping.values()]),
     }
-    postprocess_save(data, "soil_temperature_regime_class", "TEMP_CLASS", attrs, res_path)
+    postprocess_save(data, "soil_temperature_regime", "TEMP_CLASS", attrs, res_path, res)
 
     # topsoil gravel content
     fp = DATAPATH / 'lris-fsl-fundamental-soil-layers/fsl-topsoil-gravel-content'
@@ -435,4 +410,4 @@ for res, grid in RESOLUTION.items():
         'source': 'https://lris.scinfo.org.nz/layer/48109-fsl-topsoil-gravel-content/',
         'description': 'Topsoil gravel content is estimated as weighted averages for the upper part of the soil profile from 0-0.2 m depth.',
     }
-    postprocess_save(data, "topsoil_gravel_content", "GRAV_MOD", attrs, res_path)
+    postprocess_save(data, "topsoil_gravel_content", "GRAV_MOD", attrs, res_path, res)

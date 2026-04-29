@@ -1,11 +1,14 @@
 """Helper functions."""
 
-from osgeo import gdal # before rasterio to avoid ImportError
+from osgeo import gdal # before rasterio and geocube to avoid ImportError
 import numpy as np
+from geocube.api.core import make_geocube
 import rasterio as rio
 from rasterio.transform import Affine
 from rasterio.warp import reproject, Resampling, calculate_default_transform
 import xarray as xr
+
+from nzglid import METADATA, release
 
 def make_exraster(path: str, res: tuple[float | int, float | int]):
     """
@@ -101,3 +104,28 @@ def open_raster(path):
     da = xr.open_dataarray(path, engine="rasterio")
     da = da.rename({"x": "lon", "y": "lat"}).isel(lat=slice(None, None, -1), band=0)
     return da.drop_vars(["band", "spatial_ref"])
+
+
+def rasterise(layer, field, grid, categorical_enums=None):
+    ds  = make_geocube(
+        layer,
+        measurements=[field],
+        resolution= grid,
+        output_crs= "EPSG:4326",
+        categorical_enums= categorical_enums
+    )
+    if categorical_enums is not None:
+        ds[field] = ds[field].where(ds[field] != -1)  # set nodata to NaN
+
+    ds["x"] = ds["x"].round(3)
+    ds["y"] = ds["y"].round(3)
+    return ds.rename({"x": "lon", "y": "lat"}).drop_vars("spatial_ref")
+
+def postprocess_save(da, name:str, field, attrs, outpath, res):
+    da = da[field].rename(name)
+    da.attrs = {
+        **METADATA,
+        **attrs,
+        'comment': f'from field: {field}'
+    }
+    da.to_netcdf(outpath / f"NZGLID_{name.replace("_", "-")}_{res}_v{release}.nc")
