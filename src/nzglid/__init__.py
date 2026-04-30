@@ -4,7 +4,7 @@ from pathlib import Path
 
 __author__ = "Baptiste Hamon"
 __email__ = "baptiste.hamon@pg.canterbury.ac.nz"
-__version__ = "2.0-dev0"
+__version__ = "2.0"
 release = __version__.split("-", maxsplit=1)[0]
 
 __all__ = ["release"]
