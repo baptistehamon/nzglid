@@ -19,7 +19,7 @@ Individual variable files are also available in .zip folders.
 
 ### Variables
 
-The NZGLID comprises a total of 23 variables: aspect, cation exchange capacity, depth to slowly permeable horizon, drainage, elevation, erosion severity, flood return interval, land cover, land use capability, LUCAS land use, particle size, permeability profile, ph, phosphate rentation, potential rooting depth, profile readily available water, profile total available water, rock outcrops and surface boulders, salinity, slope, soil temperature regime, topsoil gravel content, total carbon content.
+The NZGLID comprises a total of 23 variables: aspect, cation exchange capacity, depth to slowly permeable horizon, drainage, elevation, erosion severity, flood return interval, land cover, land use capability, LUCAS land use, particle size, permeability profile, ph, phosphate retention, potential rooting depth, profile readily available water, profile total available water, rock outcrops and surface boulders, salinity, slope, soil temperature regime, topsoil gravel content, total carbon content.
 
 ### Using the data
 
