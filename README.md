@@ -1,7 +1,7 @@
 # New Zealand Gridded Land Information Dataset (NZGLID)
 
 [![release](https://img.shields.io/github/v/tag/baptistehamon/nzglid?label=release)](https://doi.org/10.5281/zenodo.16249350)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16809254.svg)](https://doi.org/10.5281/zenodo.16249350)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16249350.svg)](https://doi.org/10.5281/zenodo.16249350)
 
 
 This repository contains the code used to create the New Zealand Gridded Land Information Dataset (NZGLID). The files `rasterise.py`, `resample.py` and `nzglid.py` were used for rasterising the input vectors data, resampling the input rasters data and creating the final dataset by merging the rasterised and resampled data, respectively. The `utils.py` file contains utility functions used across the other scripts. The `inspect.py` file contains code for inspecting differences between versions of the dataset. The `sources.txt` file includes the date and url of the sources used to create the dataset. A detailed description of the dataset is provided below. The dataset is available on [Zenodo](https://doi.org/10.5281/zenodo.16809254).
