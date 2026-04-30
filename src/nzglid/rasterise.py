@@ -3,7 +3,7 @@
 import geopandas as gpd
 
 from nzglid import DATAPATH, NZGLID_PATH, RESOLUTION
-from nzglid.helpers import rasterise, postprocess_save
+from nzglid.utils import rasterise, postprocess_save
 
 CATEGORIES_CODE = {
     'e': 'estuary',

@@ -4,7 +4,7 @@ from pathlib import Path
 import xarray as xr
 
 from nzglid import DATAPATH, NZGLID_PATH, METADATA, release, RESOLUTION
-from nzglid.helpers import make_exraster, reproj_match, open_raster
+from nzglid.utils import make_exraster, reproj_match, open_raster
 
 for res, grid in RESOLUTION.items():
 
