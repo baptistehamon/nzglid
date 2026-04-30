@@ -18,6 +18,7 @@ dynamic = ["description", "version"]
 dependencies = [
     "geocube >=0.7.0",
     "geopandas >=0.14.0",
+    "matplotlib >=3.10.0",
     "xarray >=2024.11.0",
 ]
 
