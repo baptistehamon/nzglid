@@ -45,7 +45,7 @@ VECTOR_VARS = [
     'salinity',
     'soil_temperature_regime',
     'topsoil_gravel_content',
-    'total_carbon_content',
+    'total_carbon',
 ]
 
 RASTER_VARS = [
